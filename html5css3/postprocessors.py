@@ -121,7 +121,7 @@ def revealjs(tree, embed=True, params=None):
 
     head.append(css("rst2html5-reveal.css", embed))
 
-    body.append(html.Script("$(function () { Reveal.initialize({history:true}); });"))
+    body.append(html.Script("$(function () { Reveal.initialize({history:true, margin:0.01, rollingLinks:false}); });"))
 
 def impressjs(tree, embed=True, params=None):
     head = tree[0]
