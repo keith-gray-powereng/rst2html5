@@ -121,7 +121,7 @@ def revealjs(tree, embed=True, params=None):
 
     head.append(css("rst2html5-reveal.css", embed))
 
-    body.append(html.Script("$(function () { Reveal.initialize({history:true, margin:0.01, rollingLinks:false}); });"))
+    body.append(html.Script("$(function () { Reveal.initialize({history:true, margin:0.1, center: false, rollingLinks:false, width: 1280, height: 1024}); });"))
 
 def impressjs(tree, embed=True, params=None):
     head = tree[0]
@@ -133,11 +133,11 @@ def impressjs(tree, embed=True, params=None):
     # remove the default style
     #head.remove(head.find("./style"))
     add_class(body, "impress-not-supported")
-    failback = html.Div('<div class="fallback-message">' + 
-        '<p>Your browser <b>doesn\'t support the features required</b> by' + 
-        'impress.js, so you are presented with a simplified version of this' + 
-        'presentation.</p>' + 
-        '<p>For the best experience please use the latest <b>Chrome</b>,' + 
+    failback = html.Div('<div class="fallback-message">' +
+        '<p>Your browser <b>doesn\'t support the features required</b> by' +
+        'impress.js, so you are presented with a simplified version of this' +
+        'presentation.</p>' +
+        '<p>For the best experience please use the latest <b>Chrome</b>,' +
         '<b>Safari</b> or <b>Firefox</b> browser.</p></div>')
 
     slides = html.Div(id="impress")
