@@ -22,13 +22,13 @@ def js(path, embed=True):
     else:
         return html.Script(src=path)
 
-def css(path, embed=True):
+def css(path, embed=True, media="screen, print"):
     content = open(abspath(path)).read().decode('utf-8')
 
     if embed:
-        return html.Style(content, type="text/css")
+        return html.Style(content, type="text/css", media=media)
     else:
-        return html.Link(href=path, rel="stylesheet", type="text/css")
+        return html.Link(href=path, rel="stylesheet", type="text/css", media=media)
 
 def pretty_print_code(tree, embed=True, params=None):
     head = tree[0]
@@ -113,6 +113,7 @@ def revealjs(tree, embed=True, params=None):
     # <link rel="stylesheet" href="css/theme/default.css" id="theme">
     head.append(css(path("css", "reveal.css"), embed))
     head.append(css(path("css", "theme", theme_name), embed))
+    head.append(css(path("css", "print", "paper.css"), embed, media="print"))
 
     # <script src="lib/js/head.min.js"></script>
     # <script src="js/reveal.min.js"></script>
