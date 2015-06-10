@@ -12,14 +12,11 @@ http://twitter.github.com/bootstrap/
 
 this code is based on html4css1
 """
-
+from __future__ import absolute_import
 __docformat__ = 'reStructuredText'
-
 
 import os
 import re
-import sys
-import time
 import json
 
 import os.path
@@ -29,13 +26,16 @@ try:
 except ImportError:
     Image = None
 
-import docutils
-
 from docutils import frontend, nodes, utils, writers, languages
-
-from html import *
+from . import html
+from .html import *
 # import default post processors so they register
-import postprocessors
+from . import postprocessors
+
+
+if IS_PY3:
+    basestring = str
+
 
 def parse_param_value(value):
     try:
@@ -207,7 +207,7 @@ class Writer(writers.Writer):
         if favicon_path:
             tree[0].append(Link(href=favicon_path, rel="shortcut icon"))
 
-        for (key, processor) in Writer.post_processors.iteritems():
+        for (key, processor) in Writer.post_processors.items():
             if getattr(settings, key):
 
                 params_str = getattr(settings, key + "_opts") or ""
@@ -220,13 +220,30 @@ class Writer(writers.Writer):
                     parsed_val = parse_param_value(val)
                     pairs.append((key, parsed_val))
 
-                params = dict(pairs)
+                params = {}
+                # a key that appears more than once is converted into a list
+                # of the found values
+                for key, val in pairs:
+                    if key in params:
+                        current_val = params[key]
+
+                        if isinstance(current_val, list):
+                            current_val.append(val)
+                        else:
+                            params[key] = [current_val, val]
+                    else:
+                        params[key] = val
+
                 processor(tree, embed, params)
+
+        # tell the visitor to append the default stylesheets
+        # we call it after the postprocessors to make sure it haves precedence
+        visitor.append_default_stylesheets()
 
         self.output = DOCTYPE
         self.output += str(tree)
 
-for (key, data) in postprocessors.PROCESSORS.iteritems():
+for (key, data) in postprocessors.PROCESSORS.items():
     Writer.add_postprocessor(data["name"], key, data["processor"])
 
 
@@ -309,6 +326,11 @@ def skip(node, translator):
 def swallow_childs(node, translator):
     return Span(class_="remove-me")
 
+def raw(node, translator):
+    result = html.raw(node.astext())
+    translator._append(result, node)
+    return result
+
 NODES = {
     "abbreviation": Abbr,
     "acronym": Abbr,
@@ -387,7 +409,7 @@ NODES = {
     "option_string": skip,
     "paragraph": P,
     "problematic": problematic,
-    "raw": None,
+    "raw": raw,
     "reference": None,
     "row": Tr,
     "rubric": None,
@@ -443,6 +465,8 @@ class HTMLTranslator(nodes.NodeVisitor):
             Meta(charset=self.content_type),
             Title(self.title))
 
+    def append_default_stylesheets(self):
+        """ Appends the default styles defined on the translator settings. """
         styles = utils.get_stylesheet_list(self.settings)
 
         for style in styles:
@@ -513,11 +537,11 @@ class HTMLTranslator(nodes.NodeVisitor):
         if ids:
             atts['id'] = ids[0]
 
+            # ids must be appended as first children to the tag
             for id in ids[1:]:
-                self.current.append(Span(id=id))
+                tag.append(Span(id=id))
 
         tag.attrib.update(atts)
-
 
     def pop_parent(self, node):
         self.current = self.parents.pop()
@@ -643,7 +667,8 @@ class HTMLTranslator(nodes.NodeVisitor):
         self._stack(tag, node)
 
     def visit_target(self, node):
-        self._stack(Span(class_="target"), node)
+        append_tag = not ('refuri' in node or 'refid' in node or 'refname' in node)
+        self._stack(Span(class_="target"), node, append_tag)
 
     def visit_author(self, node):
         if isinstance(self.current, Ul):
@@ -789,7 +814,7 @@ class HTMLTranslator(nodes.NodeVisitor):
     def get_known_attributes(self, node):
         attrs = {}
 
-        for attr, value in node.attributes.iteritems():
+        for attr, value in node.attributes.items():
             if attr.startswith("data-") or attr in {'title', 'class', 'id'}:
                 attrs[attr] = value
 
