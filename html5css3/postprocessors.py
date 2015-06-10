@@ -113,7 +113,7 @@ def revealjs(tree, embed=True, params=None):
     head = tree[0]
     body = tree[1]
     params = params or {}
-    theme_name = params.pop("theme", "default") + ".css"
+    theme_name = params.pop("theme", "solarized") + ".css"
     theme_base_dir = params.pop("themepath", None)
 
     def path(*args):
@@ -142,7 +142,7 @@ def revealjs(tree, embed=True, params=None):
     # <script src="lib/js/head.min.js"></script>
     # <script src="js/reveal.min.js"></script>
     body.append(js(path("lib", "js", "head.min.js"), embed))
-    body.append(js(path("js", "reveal.min.js"), embed))
+    body.append(js(path("js", "reveal.js"), embed))
 
     head.append(css("rst2html5-reveal.css", embed))
 
