@@ -146,9 +146,6 @@ def revealjs(tree, embed=True, params=None):
 
     head.append(css("rst2html5-reveal.css", embed))
 
-    params['history'] = True
-    params['margin'] = 0.1
-    params['rollingLinks'] = False
     param_s = json.dumps(params)
     body.append(
         html.Script("$(function () { Reveal.initialize(%s); });" % param_s))
